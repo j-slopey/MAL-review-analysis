@@ -41,20 +41,20 @@ DROP TABLE IF EXISTS anime_licensors;
 DROP TABLE IF EXISTS anime_genres;
 
 
-CRATE TABLE anime_info(
+CREATE TABLE anime_info(
     anime_id INTEGER,
     anime_name TEXT,
     score FLOAT,
     synopsis TEXT,
     format TEXT,
     ep_count INTEGER,
-    airing_start DATE,
-    airing_end DATE,
+    start_year INTEGER,
+    end_year INTEGER,
     premiere_date DATE,
     source_material TEXT,
     episode_duration INTERVAL,
-    age_rating TEXT,
-)
+    age_rating TEXT
+);
 
 CREATE TABLE anime_stats (
     anime_id INTEGER,
@@ -66,29 +66,29 @@ CREATE TABLE anime_stats (
     completed_count INTEGER,
     hold_count INTEGER,
     dropped_count INTEGER
-)
+);
 
 CREATE TABLE anime_producers (
     anime_id INTEGER,
     producer TEXT
-)
+);
 
 CREATE TABLE anime_studios (
     anime_id INTEGER,
     studio TEXT
 
-)
+);
 
 CREATE TABLE anime_licensors (
     anime_id INTEGER,
     licensor TEXT
-)
+);
 
 CREATE TABLE anime_genres (
     anime_id INTEGER,
     genre TEXT
 
-)
+);
 
 -- Move data from raw table to organized schema
 INSERT INTO anime_info (
@@ -98,8 +98,8 @@ INSERT INTO anime_info (
     synopsis,
     format,
     ep_count,
-    airing_start,
-    airing_end,
+    start_year,
+    end_year,
     source_material,
     episode_duration,
     age_rating
@@ -108,28 +108,44 @@ SELECT
     anime_id,
     anime_name,
     score,
-    synopsis, 
-    NULLIF(trim(format), 'Unknown'),
-    NULLIF(ep_count, 'Unknown')::INTEGER,
+    synopsis,
+    format,
     CASE
-        WHEN aired IS NULL OR trim(aired) = '' OR trim(aired) = 'Unknown' THEN NULL
-        ELSE trim(split_part(aired, ' to ', 1))::DATE
-    END AS airing_start,
+        WHEN ep_count IS NULL OR trim(ep_count) = 'Unknown' THEN NULL
+        ELSE trim(ep_count)::INTEGER
+    END, 
 
     CASE
-        WHEN aired IS NULL OR trim(aired) = '' OR trim(aired) = 'Unknown' THEN NULL
-        WHEN aired LIKE '% to %' THEN trim(split_part(aired, ' to ', 2))::DATE,
-        ELSE trim(split_part(aired, ' to ', 1))::DATE,
-    END AS airing_end,
-
-    NULLIF(trim(source_material), 'Unknown'),
+        WHEN aired IS NULL OR trim(aired) = 'Unknown' THEN NULL
+        ELSE substring(trim(split_part(aired, ' to ', 1)) from '\d{4}')::INTEGER
+    END AS start_year,
 
     CASE
-        WHEN episode_duration LIKE '% per ep.'
-        -- TODO
+        WHEN aired IS NULL OR trim(aired) = 'Unknown' OR trim(aired) LIKE '% to ?' THEN NULL
+        WHEN aired LIKE '% to %' THEN substring(trim(split_part(aired, ' to ', 2)) from '\d{4}')::INTEGER
+        ELSE substring(trim(aired) from '\d{4}')::INTEGER
+    END AS end_year,
+
+    source_material
+
+    CASE
+        WHEN episode_duration IS NULL OR trim(episode_duration) = 'Unknown' THEN NULL
+        WHEN episode_duration LIKE '% per ep.' THEN REPLACE(substring(episode_duration FROM 1 FOR length(episode_duration) - 8), '.', '')::INTERVAL
+        ELSE REPLACE(episode_duration, '.', '')::INTERVAL
     END AS episode_duration,
 
-    NULLIF(trim(age_rating), 'Unknown')
+    age_rating
 
+FROM
+    anime_filtered_raw;
+
+
+INSERT INTO anime_stats (
+    anime_id, ranking, popularity, viewer_count, viewer_favorite_count,
+    currently_watching_count, completed_count, hold_count, dropped_count
+)
+SELECT
+    anime_id, ranking, popularity, viewer_count, viewer_favorite_count,
+    currently_watching_count, completed_count, hold_count, dropped_count
 FROM
     anime_filtered_raw;

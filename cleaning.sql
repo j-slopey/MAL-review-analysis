@@ -1,3 +1,4 @@
+SET search_path to group31;
 DROP TABLE IF EXISTS anime_filtered_raw;
 
 -- Create single table with all original columns
@@ -126,7 +127,7 @@ SELECT
         ELSE substring(trim(aired) from '\d{4}')::INTEGER
     END AS end_year,
 
-    source_material
+    source_material,
 
     CASE
         WHEN episode_duration IS NULL OR trim(episode_duration) = 'Unknown' THEN NULL
@@ -147,5 +148,37 @@ INSERT INTO anime_stats (
 SELECT
     anime_id, ranking, popularity, viewer_count, viewer_favorite_count,
     currently_watching_count, completed_count, hold_count, dropped_count
+FROM
+    anime_filtered_raw;
+
+
+INSERT INTO anime_producers (anime_id, producer)
+SELECT
+    anime_id,
+    trim(unnest(string_to_array(producers, ',')))
+FROM
+    anime_filtered_raw;
+
+
+INSERT INTO anime_studios (anime_id, studio)
+SELECT
+    anime_id,
+    trim(unnest(string_to_array(studios, ',')))
+FROM
+    anime_filtered_raw;
+
+
+INSERT INTO anime_licensors (anime_id, licensor)
+SELECT
+    anime_id,
+    trim(unnest(string_to_array(licensors, ',')))
+FROM
+    anime_filtered_raw;
+
+
+INSERT INTO anime_genres (anime_id, genre)
+SELECT
+    anime_id,
+    trim(unnest(string_to_array(genres, ',')))
 FROM
     anime_filtered_raw;

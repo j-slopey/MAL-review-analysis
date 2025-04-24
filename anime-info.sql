@@ -1,4 +1,4 @@
-SET search_path to group31;
+-- SET search_path to group31;
 DROP TABLE IF EXISTS anime_filtered_raw;
 
 -- Create single table with all original columns

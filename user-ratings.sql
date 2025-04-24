@@ -1,4 +1,4 @@
-SET search_path to group31;
+-- SET search_path to group31;
 DROP TABLE IF EXISTS user_ratings;
 DROP TABLE IF EXISTS user_info;
 
@@ -30,4 +30,3 @@ CREATE TABLE user_info (
 
 \COPY user_ratings FROM 'data/user-filtered.csv' WITH (FORMAT CSV, HEADER);
 \COPY user_info FROM 'data/users-details-2023.csv' WITH (FORMAT CSV, HEADER);
-

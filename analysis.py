@@ -4,7 +4,7 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
-
+# Add credentials to .env before use
 print("Connecting to database...")
 connection = pg8000.connect(
     user= os.environ.get('STUDENT_USERNAME'),
@@ -13,7 +13,6 @@ connection = pg8000.connect(
     port=5432,
     database="csci403"
 )
-print("Done")
 
 cursor = connection.cursor()
 
@@ -27,14 +26,11 @@ cursor.execute("""
                
                """)
 data = cursor.fetchall()
-print("Done")
 
 print("Building scatterplot...")
 num_ratings = [pair[0] for pair in data]
 mean_score = [pair[1] for pair in data]
 plt.scatter(num_ratings, mean_score)
-print("Done")
-
 plt.show();
 
 

@@ -17,7 +17,7 @@ connection = pg8000.connect(
 cursor = connection.cursor()
 
 print("Retrieving data from database...")
-# Only analyzing bottom 99% of raters by frequency
+
 cursor.execute("""
 SELECT COUNT(rating) AS num_ratings, mean_score
 FROM user_info JOIN user_ratings USING(user_id)
@@ -74,6 +74,11 @@ groups = [pair[0] for pair in grouped_data]
 averages = [pair[1]-8 for pair in grouped_data]
 plt.figure(2)
 plt.bar(groups, averages, bottom=8, color=['red','blue','orange','green'], label= averages)
+plt.xlabel("Grouping based on # of ratings")
+plt.ylabel("Average score given")
+plt.title("Average Score for Different Groups of Users")
+
+
 
 
 

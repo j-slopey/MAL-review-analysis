@@ -24,9 +24,9 @@ grouped AS (
         WHEN num_ratings > (SELECT p_50 FROM percentiles) AND num_ratings <= (SELECT p_75 FROM percentiles) THEN '50th to 75th percentile'
         WHEN num_ratings > (SELECT p_75 FROM percentiles) AND num_ratings <= (SELECT p_99 FROM percentiles) THEN '75th to 99th percentile'
         ELSE 'Invalid Count'
-    END AS quartile
+    END AS grouping
     FROM filtered
 )
-SELECT quartile, AVG(mean_score) AS avg_rating 
-FROM grouped GROUP BY quartile ORDER BY quartile; 
+SELECT grouping, AVG(mean_score) AS avg_rating 
+FROM grouped GROUP BY grouping ORDER BY grouping; 
 

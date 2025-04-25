@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import pg8000 
 import os
 from dotenv import load_dotenv
+from scipy import stats
 
 load_dotenv()
 # Add credentials to .env before use
@@ -69,6 +70,9 @@ plt.scatter(num_ratings, mean_score, marker='x', s=10)
 plt.xlabel("Total Number of Ratings By User")
 plt.ylabel("Average Score Given")
 plt.title("Average Score vs. Number of Ratings")
+
+correlation = stats.spearmanr(num_ratings, mean_score)
+print("Spearman rank-order correlation: ", correlation.statistic)
 
 groups = [pair[0] for pair in grouped_data]
 averages = [pair[1]-8 for pair in grouped_data]

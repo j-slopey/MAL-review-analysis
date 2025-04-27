@@ -97,7 +97,6 @@ CREATE TABLE anime_genres (
 INSERT INTO anime_info (
     anime_id,
     anime_name,
-    score,
     synopsis,
     format,
     ep_count,
@@ -147,7 +146,7 @@ INSERT INTO anime_stats (
     currently_watching_count, completed_count, hold_count, dropped_count
 )
 SELECT
-    anime_id, ranking, popularity, viewer_count, viewer_favorite_count,
+    anime_id, score, ranking, popularity, viewer_count, viewer_favorite_count,
     currently_watching_count, completed_count, hold_count, dropped_count
 FROM
     anime_filtered_raw;

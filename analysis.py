@@ -26,7 +26,7 @@ WHERE mean_score != 0
 GROUP BY user_id, mean_score
 HAVING COUNT(rating) < 1804;
                """)
-data = cursor.fetchall()
+score_data = cursor.fetchall()
 
 cursor.execute("""
 WITH rating_stats AS (
@@ -60,38 +60,114 @@ grouped AS (
 SELECT grouping, AVG(mean_score) AS avg_rating 
 FROM grouped GROUP BY grouping ORDER BY grouping; 
                """)
-grouped_data = cursor.fetchall()
+grouped_score_data = cursor.fetchall()
+
+# Data for episode count and completion rate for all tv shows
+cursor.execute("""
+SELECT ep_count, completed_count::FLOAT/viewer_count AS completion_rate
+FROM anime_info JOIN anime_stats USING(anime_id)
+WHERE format = 'TV' AND completed_count > 0 AND ep_count BETWEEN 0 AND 1500 ;
+               """)
+ep_count_data = cursor.fetchall()
+
+
+# Top 5 genres by average score for genres with > 500 shows.
+cursor.execute("""
+SELECT genre, AVG(score) AS average_score
+FROM anime_info JOIN anime_genres USING(anime_id)
+GROUP BY genre
+HAVING COUNT(genre) > 500
+ORDER BY average_score DESC
+LIMIT 5;
+               """)
+genre_score_data = cursor.fetchall()
+
+# Top 5 genres by drop rate score for genres with > 500 shows.
+cursor.execute("""
+SELECT genre, AVG(dropped_count::FLOAT/viewer_count) AS drop_rate
+FROM anime_stats JOIN anime_genres USING(anime_id) 
+GROUP BY genre
+HAVING COUNT(genre) > 500
+ORDER BY drop_rate DESC
+LIMIT 5;
+               """)
+genre_drop_data = cursor.fetchall()
+
+# Top 5 genres by completion rate score for genres with > 500 shows.
+cursor.execute("""
+SELECT genre, AVG(completed_count::FLOAT/viewer_count) AS completion_rate
+FROM anime_stats JOIN anime_genres USING(anime_id) 
+GROUP BY genre
+HAVING COUNT(genre) > 500
+ORDER BY completion_rate DESC
+LIMIT 5;
+               """)
+genre_comp_data = cursor.fetchall()
+
+
+
 
 print("Building figures...")
-num_ratings = [pair[0] for pair in data]
-mean_score = [pair[1] for pair in data]
+
+# Scatterplot of # of rankings vs average score for different users
+num_ratings = [pair[0] for pair in score_data]
+mean_score = [pair[1] for pair in score_data]
 plt.figure(1)
 plt.scatter(num_ratings, mean_score, marker='x', s=10)
 plt.xlabel("Total Number of Ratings By User")
 plt.ylabel("Average Score Given")
 plt.title("Average Score vs. Number of Ratings")
+rating_correlation = stats.spearmanr(num_ratings, mean_score)
+print("Score vs. Ranking Count Correlation (Spearman Rank-Order): ", rating_correlation.statistic)
 
-correlation = stats.spearmanr(num_ratings, mean_score)
-print("Spearman rank-order correlation: ", correlation.statistic)
-
-groups = [pair[0] for pair in grouped_data]
-averages = [pair[1]-8 for pair in grouped_data]
+# Bar chart of average score grouped by rating count
+groups = [pair[0] for pair in grouped_score_data]
+averages = [pair[1]-8 for pair in grouped_score_data]
 plt.figure(2)
-plt.bar(groups, averages, bottom=8, color=['red','blue','orange','green'], label= averages)
+plt.bar(groups, averages, bottom=8, color=['red','blue','orange','green'])
 plt.xlabel("Grouping based on # of ratings")
 plt.ylabel("Average score given")
 plt.title("Average Score for Different Groups of Users")
 
+# Scatterplot of episode count vs completion rate for different users
+ep_count = [pair[0] for pair in ep_count_data]
+comp_rate = [pair[1] for pair in ep_count_data]
+plt.figure(3)
+plt.scatter(ep_count, comp_rate, marker='x', color='salmon')
+plt.xlabel("Total Number of Episodes")
+plt.ylabel("Completion Rate (# of completions / # of show watchers)")
+plt.title("Episode Count vs. Completion Rate")
+completion_correlation = stats.spearmanr(ep_count, comp_rate)
+print("Completion Rate vs. Episode Count Correlation (Spearman Rank-Order): ", completion_correlation.statistic)
 
+# Bar chart of average score for different genres (Top 5)
+genres = [pair[0] for pair in genre_score_data]
+genre_scores = [pair[1]-6 for pair in genre_score_data]
+plt.figure(4)
+plt.bar(genres, genre_scores, bottom=6,color=['skyblue','lightpink','lightgreen','plum','teal'])
+plt.xlabel("Genre")
+plt.ylabel("Average score given")
+plt.title("Average Score for Different Genres (Top 5)")
 
+# Bar chart of drop rate for different genres (Top 5)
+genres = [pair[0] for pair in genre_drop_data]
+genre_drop_rate = [pair[1] for pair in genre_drop_data]
+plt.figure(5)
+plt.bar(genres, genre_drop_rate, color=['skyblue','lightpink','lightgreen','plum','teal'])
+plt.xlabel("Genre")
+plt.ylabel("Drop Rate (# of drops / # of show watchers)")
+plt.title("Drop Rate for Different Genres (Top 5)")
 
-
+# Bar chart of completion rate for different genres (Top 5)
+genres = [pair[0] for pair in genre_comp_data]
+genre_comp_rate = [pair[1] for pair in genre_comp_data]
+plt.figure(6)
+plt.bar(genres, genre_comp_rate, color=['skyblue','lightpink','lightgreen','plum','teal'])
+plt.xlabel("Genre")
+plt.ylabel("Completion Rate (# of completions / # of show watchers)")
+plt.title("Completion Rate for Different Genres (Top 5)")
 
 plt.show()
-
-
-
-
 
 print("Closing connection")
 cursor.close()

@@ -1,4 +1,6 @@
--- SET search_path to group31;
+SET ROLE group31;
+SET search_path to group31;
+
 DROP TABLE IF EXISTS anime_filtered_raw;
 
 -- Create single table with all original columns
@@ -45,7 +47,6 @@ DROP TABLE IF EXISTS anime_genres;
 CREATE TABLE anime_info(
     anime_id INTEGER,
     anime_name TEXT,
-    score FLOAT,
     synopsis TEXT,
     format TEXT,
     ep_count INTEGER,
@@ -59,6 +60,7 @@ CREATE TABLE anime_info(
 
 CREATE TABLE anime_stats (
     anime_id INTEGER,
+    score FLOAT,
     ranking FLOAT,
     popularity INTEGER,
     viewer_count INTEGER,
@@ -108,7 +110,6 @@ INSERT INTO anime_info (
 SELECT
     anime_id,
     anime_name,
-    score,
     synopsis,
     format,
     CASE
@@ -142,7 +143,7 @@ FROM
 
 
 INSERT INTO anime_stats (
-    anime_id, ranking, popularity, viewer_count, viewer_favorite_count,
+    anime_id, score, ranking, popularity, viewer_count, viewer_favorite_count,
     currently_watching_count, completed_count, hold_count, dropped_count
 )
 SELECT

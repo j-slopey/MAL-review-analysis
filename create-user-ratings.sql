@@ -1,4 +1,7 @@
--- SET search_path to group31;
+SET ROLE group31;
+SET search_path to group31;
+
+
 DROP TABLE IF EXISTS user_ratings;
 DROP TABLE IF EXISTS user_info;
 

@@ -17,6 +17,7 @@ connection = pg8000.connect(
 
 cursor = connection.cursor()
 
+cursor.execute("SET search_path TO group31")
 print("Retrieving data from database...")
 
 cursor.execute("""
@@ -74,7 +75,7 @@ ep_count_data = cursor.fetchall()
 # Top 5 genres by average score for genres with > 500 shows.
 cursor.execute("""
 SELECT genre, AVG(score) AS average_score
-FROM anime_info JOIN anime_genres USING(anime_id)
+FROM anime_stats JOIN anime_genres USING(anime_id)
 GROUP BY genre
 HAVING COUNT(genre) > 500
 ORDER BY average_score DESC
@@ -105,7 +106,9 @@ LIMIT 5;
 genre_comp_data = cursor.fetchall()
 
 
-
+print("Closing connection")
+cursor.close()
+connection.close()
 
 print("Building figures...")
 
@@ -169,7 +172,4 @@ plt.title("Completion Rate for Different Genres (Top 5)")
 
 plt.show()
 
-print("Closing connection")
-cursor.close()
-connection.close()
 
